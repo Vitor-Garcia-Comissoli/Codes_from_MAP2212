@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+\begin{center}
+    \textbf{\LARGE MAP2212 - Laboratório de Computação e Simulação}\\
+    \vspace{0.3cm}
+    \textbf{\Large Relatório - EP01}\\
+    \vspace{0.3cm}
+    \large{Vítor Garcia Comissoli - 11810411}
+\end{center}
+
+\section{Introdução}
+
+    O objetivo deste EP é a estimação de $\pi$ por meio da proporcionalidade de um número \textbf{n} de pontos uniformemente obtidos baseado se estão "dentro" e "fora" de uma circunferência de raio 1, inscrita em um quadrado de lado 2 centrado na origem, de modo que a estimativa para $\pi$ obitida tenha um erro de, no máximo, 0.05\% de $\pi$, com 95\% de confiança, ou seja, que fique dento do Intervalo de Confiança $[\pi\cdot(1 - 0.0005),\pi\cdot(1 + 0.0005)]$ com $\gamma=0.95$.\\
+    \\
+    Vale ressaltar também que, neste EP, deve-se tratar o valor de $\pi$ como desconhecido, então todas as contas devem ser realizadas com um estimador qualquer para $\pi$ ($\hat{\pi}$).
+
+\section{Discussão Teórica}
+
+    Primeiramente, foi necessário descobrir o valor de \textbf{n} (número de loopings realizados pela função "for in range") para que a estimativa de $\pi$ se encontre dentro do intervalo de confiança dado acima com $\gamma = 0.95$\\
+    \\
+    Para isso, foi utilizada a aproximação assintótica da Binomial(n,$\frac{\pi}{4}$) para uma Normal(0,1). Disso temos que a fórmula para a obtenção de \textbf{n} pode ser dada por:\\
+    $$n \geq \frac{z_\gamma¨2 \cdot \sigma^2}{\epsilon^2} \Leftrightarrow \frac{z_\gamma \cdot \sigma}{\sqrt{n}} \leq \epsilon $$
+    \\
+    Como temos um $\gamma=0.95$, tomamos pela tabela da normal que $z_\gamma = 1.96$\\
+    \\
+    Temos que $\epsilon = \pi \cdot0.0005$. Como o programa calcula apenas a área do primeiro quadrande e depois a multiplica por quatro, podemos dizer que o erro no quadrante se dá por:\\
+    $$ \frac{|\hat{\pi}-\pi|}{4} \leq 0.0005\cdot \frac{\hat{\pi}}{4}$$
+    Disso, dizemos que o erro experimental a ser usado na fórmula da aproximação assintótica se dá por
+    $\epsilon = 0.0005\cdot \frac{\hat{\pi}}{4}$, sendo $\hat{\pi}$ um estimador para $\pi$ que será calculado mais tarde.\\
+    \\
+    Se tratando de $\sigma^2$, como este tende a variância de uma bernoulli, podemos ultilizar $\sigma^2 = p(1-p)$, que no caso que está sendo analizado, se dá por $\sigma^2 = \frac{\hat{\pi}}{4}(1-\frac{\hat{\pi}}{4})$, sendo $\hat{\pi}$ o mesmo estimador utilizado para a obtenção de $\epsilon$.\\
+    \\
+    Pela fórmula de $\epsilon$ dada acima temos intuitivamente que, quanto menor for o valor de $\hat{\pi}$ maior será o valor de n, ou seja, se tomarmos um valor para $\hat{\pi}$ que seja menor que $\pi$ obteremos um n que chegaria a um intervalo de confiança ainda mais preciso que o que foi solicitado. Dessa forma, podemos utilizar $\hat{\pi} = 3$ desde que provemos que $3 \leq \pi$.\\
+    \\
+    Para provar que $3\leq \pi$ tomemos o hexágono inscrito à circunferência de raio 1 centrada na origem. Ao dividir este hexágono em 6 partes iguais ficamos com 6 triângulos cujos 3 ângulos são iguas a $\frac{\pi}{3}$. Disso temos que os 6 triângulos são equiláteros, e como sabemos que dois de seus lados são iguais ao raio da circunferência $= 1$, temos que todos os lados são $= 1$. Dessa forma sabemos que o perímetro desse hexágono será igual a 6. Sabemos, pela definição, que o perímetro da circunferência $=2\pi r = 2\pi\cdot 1 = 2\pi$. Assim temos que:\\
+    \\
+    Perímetro do Hexágono $\leq$ Perímetro da Circunferência $\Leftrightarrow 6 \leq 2\pi \Leftrightarrow 3 \leq \pi$\\
+    \\
+    Tendo provado que $3 \leq \pi$, tomemos $\hat{\pi}=3$\\
+    \\
+    Agora, tendo todos os valores, podemos encontrar o valor de n desejado utilizando a fórmula da aproximação assintótica para uma Normal(0,1) já apresentada acima. Temos então:\\
+    
+    $$\frac{z_\gamma \cdot \sigma}{\sqrt{n}} \leq \epsilon \Leftrightarrow \frac{1.96 \cdot\sqrt{\frac{3}{4}(1-\frac{3}{4})}}{\sqrt{n}} \leq 0.0005\cdot\frac{3}{4}$$\\
+    $$\Leftrightarrow \sqrt{n}\geq \frac{1.96\cdot\sqrt{\frac{3}{16}}}{0.000375}\Leftrightarrow \sqrt{n}\geq 2263 \Leftrightarrow n\geq 5121169$$\\
+    \\
+    Temos assim, que o valor de \textbf{n} a ser colocado no programa para satisfazer as condições impostas pelo enunciado deve ser igual a 5121169.
+
+\section{Discussão do Código}
+
+    A função "estima-pi" desenvolvida se dá por:\\
+    \\
+    \textbf{"dentro = 0"} $\leftarrow$ inicialização do contador "dentro", que no final do programa conterá a quantidade de pontos que se encontram dentro do primeiro quadrante da circunferência.\\
+    \\
+    \textbf{"n = 5121169"} $\leftarrow$ valor de \textbf{n} obtido teoricamente (como demostrado acima), que servirá de range para o loop.\\
+    \\
+    \textbf{"for i in range (n):"} $\leftarrow$ um loop que vai de 0 à n-1 onde uma coordenada (X,Y) vai ser uniformemente sorteada e, caso esteja dentro do primeiro quadrante do círculo, será somada ao valor de "dentro".\\
+    \\
+    \textbf{"x = random.uniform(0,1)"} e \textbf{"y = random.uniform(0,1)"} $\leftarrow$ são os valores sorteados para a coordenada (X,Y) no i-ésimo momento do loop.\\
+    \\
+    \textbf{"z = (x**2 + y**2)**(1/2)"} $\leftarrow$ encontra z, a hipotenusa do triângulo retângulo de catetos x e y.\\
+    \\
+    % Por algum motivo quando compilo o documento o "<=" da linha abaixo está aparecendo como "!=" no PDF, por isso coloquei o "$\prec$", assim fica mais próximo do "<="
+    \textbf{"if z $\prec$= 1:"} $ \leftarrow$ testa se z está dentro do primeiro quadrante do círculo, testando se o valor de z é $\leq 1$, já que o raio da circunferência é 1.\\
+    \\
+    \textbf{"dentro += 1"} $\leftarrow$ Se z está dentro do primeiro quadrante da circunferência ($z\leq1$), o contador "dentro" recebe +1.\\
+    \\
+    \textbf{"pi = 4*(dentro/n)"}$\leftarrow$ Estima a área do primeiro quadrante ao dividir a quanidade de pontos dentro do círculo pela quantidade total de pontos, e depois multiplica por 4 para obter a estimativa da área da circunferência inteira.\\
+    \\
+    \textbf{"return pi"}$\leftarrow$ retorna a estimativa para $\pi$ obtida pela função "estima-pi".\\
+    
+\section{Resultado}
+
+    O teste dos resultados foi realizado pela criação de uma função main() que chama a função estima-pi \textbf{n} vezes e imprime a razão das estimativas para $\pi$ que se encontram dentro do intevalo de confiança sobre o número total de estimativas realizadas.\\
+    \\
+    Para $n = 100$, essa razão foi de $0.97$, com média $\mu = 3.141682$. O tempo gasto para um loop de $n = 100$ foi de, aproximadamente, $730.53$ segundos ($12.18$ min).\\
+    \\
+    Já para um $n = 500$, a razão obtida foi de $0.966$, com média $\mu = 3.141564$. O tempo gasto para um loop de $n = 500$ foi de, aproximadamente, $3660.89$ segundos ($61.01$ min).\\
+    \\
+    Ambos os valores apresentados acima mostram-se coerentes aos parâmetros de acurácia $\gamma = 0.95$ e $\epsilon = \pi \cdot0.0005$, estipulados pelo enunciado do EP. \\
+    \\
+    Com isso podemos concluir que o resultado obtido foi dentro do esperado.
+
+\section{Conclusão}
+
+    Pode-se concluir que o programa atingiu os objetivos que lhe foram propostos, já que os valores obtidos pelos testes acima se mostraram coerentes com aquilo que era esperado pela parte teórica (obtenção de \textbf{n}), e com aquilo que foi solicitado no enunciado do EP.
+
+\end{document}

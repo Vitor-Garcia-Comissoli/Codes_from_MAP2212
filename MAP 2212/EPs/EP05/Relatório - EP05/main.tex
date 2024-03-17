@@ -1,0 +1,84 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fullpage,enumitem,amssymb,amsmath,xcolor,cancel,gensymb,hyperref,graphicx}
+\usepackage[brazilian]{babel}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{booktabs, multirow}
+\newcommand{\undertilde}[1]{\underset{\widetilde{}}{#1}}
+
+\begin{document}
+\begin{center}
+    \textbf{\LARGE MAP2212 - Laboratório de Computação e Simulação}\\
+    \vspace{0.3cm}
+    \textbf{\Large Relatório - EP05}\\
+    \vspace{0.3cm}
+    \large{Ayrton Amaral Alves Vítor - 11288131}\\
+    \large{Vítor Garcia Comissoli - 11810411}
+\end{center}
+
+\section{Introdução}
+
+    O objetivo desse EP é, assim como no EP04, a estimação da área (\textbf{u(v)}) de uma função dirichlet dado um certo limite superior \textbf{V}. Para estimar tal área deve-se utilizar uma aproximação por "histograma", ou seja, a área deve ser dividida em um número \textbf{k} de retângulos (tomemos a proporção de $k = \frac{n}{2}$ obtida no EP anterior) no eixo y (retângulos empinhados uns acima dos outros na horizontal ao invés de lado a lado na vertical), denomeados bandas (ou bins). Para isso deve-se somar as áreas de todas as \textbf{k} bandas (bins) geradas.\\
+    
+    Entretanto, diferentemente do EP anterior, deve-se obter a função geradora aleatória da distribuição dirichlet por meio de um algorítimo de MCMC (Monte Carlo Markovian Chains), mais especificamente por Metropolis - Hastings.\\
+    
+    Além disso, deve-se obter um erro de, no máximo, 0.05\%, com 95\% de confiança, ou seja, que fique dentro do Intervalo de Confiança $[u(v) - 0.0005, u(v) + 0.0005]$ com $\alpha=0.95$.
+    
+\section{Discussão Teórica}
+
+    Como esse EP é um complemento do EP04, a primeira parte da discussão teórica  seria a mesma, por isso optamos por não nos repetir. Com isso, na parte teórica será discutido o método utilizado para a função geradora, conhecido como \textit{Monte Carlo Markov Chain method} (\textbf{MCMC method}) e o valor de \textbf{n} necessário para atingir a precisão solicitada.
+    
+\subsection{Método MCMC}
+
+    O método MCMC consiste, basicamente, na aproximação de uma distribuição qualquer por meio de uma distribuição estacionária (\textbf{$\undertilde{\Pi}$}) de uma cadeia de markov criada especificamente com esse intuito. Nesse EP, a distribuição que queremos é uma dirichlet, e foram-se utilizadas amostras obtidas a partir de uma distribuição Normal bivariada para criar e aperfeiçoar tal cadeia.\\
+    
+    O aperfeiçoamento se dá pelo número de iterações que a cadeia de Markov passa até atingir a distrubuição estacionária, já que, utilizar uma cadeia com um número de iterações menor que o número necessáio para que se atinja a estácionária não dará uma estimativa tão precisa quanto uma cadeia que já atingiu tal distribuição.\\
+    
+    Diferente do método de Aceitação e Rejeição, em MCMC, os valores tendem a ficar mais próximos da região de maior probabilidade da distribuição desejada, já que o n-ésimo valor obtido pode, ou permanecer com a mesma amostra sendo utilizada como média para a distribuição à prióri (nesse caso uma Normal bivariada) caso a nova amostra seja menos provável que a anterior (com probabilidade de permanência inversamente proporcional ao quão provável é aquela nova amostra obtida), ou mudar (com probabilidade 1) para uma nova amostra caso ela tenha um probabilidade maior que a anterior. \\
+    
+    Vale ressaltar que esse método demora algumas iterações para se aproximar da distribuição desejada, então deve-se descartas um certo número de amostras inicias que, muito provavelmente, não correspondem à distribuição desejada (também conhecido como burn-in). Para este fim, descartamos as primeiras 1000 iterações.
+
+\subsection{Obtenção Amostral de n}
+    Fixando os valores do input (\textbf{x}, \textbf{y} e \textbf{v}) e tomando $k = \frac{n}{2}$, criamos uma função que utilizou-se do desvio padrão de vários valores de \textbf{n}, até que fosse encontrado um valor que garantisse um erro (desvio padrão) $\leq 0.0005$.\\
+    \\
+    Realizou-se então a média do teste acima para diferentes valores de x, y e z fixados, onde x, y e z $= \{1,2,3,4,5,6,7,8,9\}$.\\
+    \\
+    Disso, obteve-se que $n = 280000 $ é o menor valor para \textbf{n} testado que garante o erro esperado. Assim, tomaremos \textbf{n} como 280000.\\
+    \\
+    Como para n = 28000, $k = \frac{n}{2}$ se mostrou coerente com o erro de 0.05\%, temos que k = 140000 é um valor suficientemente preciso para \textbf{k}. Tomaremos assim \textbf{k} como 14000.\\
+    \\
+    Assim, encontramos um valor para \textbf{n} (utilizando a mesma proporção para \textbf{k} obtida no EP04) que satisfaz o intervalo de confiança do erro estipulado pelo exercício.
+
+\section{Discussão do Código}
+
+    O código da classe Estimador consiste de duas funções de classe ($\_\_init\_\_$ e U) e 3 funções adicionais (amostra\_MCMC, potencial\_dirichlet e gera\_v).\\
+    
+    A função amostra\_MCMC recebe as informações apriori dos parâmetros da Dirichlet e devolve um array com n potenciais de uma dirichlet.\\
+    
+    A função potencial\_dirichlet simplesmente computa o valor do potencial para uma Dirichlet num ponto em $\mathbb{R}^3$ com os parâmetros dados.\\
+    
+    A função gera\_v recebe \textbf{k} e os valores simulados da Dirichlet, os ordena e divide em k bins, então retorna o valor máximo de cada bin.\\
+    
+    Ao instanciar um objeto Estimador, nos utilizamos das funções anteriores para obter os valores da amostra\_MCMC. Então estimamos o integral pela função U, que computa a razão entre os valores que são menores que o valor \textbf{v} dado e o número total de valores gerados.
+
+\section{Resultado}
+    
+    Mesmo com o cálculo do n demosntrado acima, por algum motivo que não conseguimos identificar, o código aparenta não condizer com o resultado que lhe era esperado, assim não atingindo a precisão estipulada pelo enunciado do EP.\\
+    \\
+    Como não encontramos o erro no código do EP, foi decidido enviar aquilo que foi feito, visto que mostra a lógica utilizada na realização do mesmo.\\
+    \\
+    Já quanto a estimativa $\hat{u(v)}$, pode-se dizer que ela, idealmente, se aproximaria ao valor de real de $u(v)$, e que, com um valor de \textbf{n} suficientemente grande, o erro da estimativa tenderia a 0.
+
+\section{Conclusão}
+
+    Pode-se concluir então que o programa infelizmente não atingiu os objetivos que lhe foram propostos, já que os valores obtidos pelos testes acima não se mostraram coerentes com aquilo que era esperado pela parte teórica (pela obtenção de um valor para \textbf{n} que assegura o intervalo de confiança de erro proposto para \textbf{u(v)}), e com aquilo que foi solicitado no enunciado do EP (obtenção de $\hat{u(v)}$).\\
+    
+    Um elemento notável porém é o fato da geração de números pela Dirichlet é muito mais eficiente que pelo método de aceitação rejeição, pois a densidade da função auxiliar muda a cada nova estimativa.
+
+\end{document}

@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fullpage,enumitem,amssymb,amsmath,xcolor,cancel,gensymb,hyperref,graphicx}
+\usepackage[brazilian]{babel}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{booktabs, multirow}
+
+\begin{document}
+\begin{center}
+    \textbf{\LARGE MAP2212 - Laboratório de Computação e Simulação}\\
+    \vspace{0.3cm}
+    \textbf{\Large Relatório - EP04}\\
+    \vspace{0.3cm}
+    \large{Ayrton Amaral Alves Vítor - 11288131}\\
+    \large{Vítor Garcia Comissoli - 11810411}
+\end{center}
+
+\section{Introdução}
+
+    O objetivo desse EP é a estimação da área (\textbf{u(v)}) de uma função dirichlet dado um certo limite superior \textbf{V}. Para estimar tal área deve-se utilizar uma aproximação por "histograma", ou seja, a área deve ser dividida em um número \textbf{k} de retângulos no eixo y (retângulos empinhados uns acima dos outros na horizontal ao invés de lado a lado na vertical), denomeados bandas (ou bins). Para isso deve-se obter um valor para \textbf{k}, e depois somar as áreas de todas as \textbf{k} bandas (bins) geradas.\\
+    
+    Além disso, deve-se obter um erro de, no máximo, 0.05\%, com 95\% de confiança, ou seja, que fique dentro do Intervalo de Confiança $[u(v) - 0.0005, u(v) + 0.0005]$ com $\alpha=0.95$.
+    
+\section{Discussão Teórica}
+
+    Seja \textbf{X} uma v.a. de Dirichlet e tomemos uma amostra aleatória simples $\{X_i | 1\leq i \leq \textbf{n}\}$ de \textbf{X}. Queremos estimar o integral $\int_{T(v)}f(\theta|x,y)d\theta$ em que $T(v) = \{\theta\in\Theta |f(\theta|x, y)\leq v\}$.\\
+
+    Temos, pelo enunciado, que $\epsilon = 0.0005$. Pode-se então dizer que o erro se dá por: $|\hat{u(v)}-u(v)| \leq 0.0005$, onde $u(v)$ é a área da função real e $\hat{u(v)}$ é a estimativa para a área da função estimada pelo programa.\\
+
+    Primeiramente, devemos estabelecer um valor para \textbf{k} para que, fixando ele, possamos encontrar um valor para \textbf{n} que satisfaz o intevalo de confiança do erro proposto. Como \textbf{k} depende de \textbf{n}, e ainda não temos um valor para \textbf{n}, tomaremos um \textbf{k} múltiplo de \textbf{n}. Assim, fixaremos $k = \frac{1}{2}\cdot n$ (já que assim cada retângulo do "histograma" conterá 2 pontos com distribuição dirichlet).
+
+\subsection{Obtenção Amostral de n e k}
+    Fixando os valores do input (\textbf{x}, \textbf{y} e \textbf{v}) e tomando $k = \frac{n}{2}$, criamos uma função que utilizou-se do desvio padrão de vários valores de \textbf{n}, até que fosse encontrado um valor que garantisse um erro (desvio padrão) $\leq 0.0005$. Desse teste, obteve-se que $n = 36000000 $ é o menor valor para \textbf{n} testado que garante o erro esperado. Assim, tomaremos \textbf{n} como 36000000\\
+    \\
+    Como para n = 36000000, $k = \frac{n}{2}$ se mostrou coerente com o erro de 0.05\%, temos que k = 18000000 é um valor suficientemente preciso para \textbf{k}. Tomaremos assim \textbf{k} como 18000000\\
+    \\
+    Assim, encontramos valores tanto para \textbf{n} quando para \textbf{k} que satisfazem o intervalo de confiança do erro estipulado pelo exercício.
+
+\section{Discussão do Código}
+
+    O código da classe Estimador conssiste de duas funções de classe ($\_\_init\_\_$ e U) e 3 funções adicionais (dirichlet, f\_dirichlet e gera\_v).\\
+    
+    A função dirichlet recebe \textbf{alpha} e \textbf{n} e devolve um array com dimensão (n,3) que possui valores gerados por uma função geradora de probabilidade dirichlet\\
+    
+    A função f\_dirichlet recebe \textbf{alpha} e \textbf{theta} e devolve um array com os valores da função densidade de probabilidade de uma dirichlet.\\
+    
+    A função gera\_v recebe \textbf{k} e os valores simulados da Dirichlet, os ordena e divide em k bins, então retorna o valor máximo de cada bin.\\
+    
+    Ao instanciar um objeto Estimador, nos utilizamos das funções anteriores para obter os valores da f\_dirichlet. Então estimamos o integral pela função U, que computa a razão entre os valores que são menores que o valor \textbf{v} dado e o número total de valores gerados.
+
+\section{Resultado}
+
+    Como já discutido na subsection 2.1, os valores de \textbf{n} e \textbf{k} encontrados são suficientemente precisos para que o erro esteja dentro do intervalo estipulado pelo enunciado do EP.\\
+    \\
+    Já quanto a estimativa $\hat{u(v)}$, pode-se dizer que ela se aproxima ao valor de real de $u(v)$, tanto que, com um valor de \textbf{n} suficientemente grande, o erro da estimativa tende a 0, o que demonstra a eficácia da estimativa obtida.
+
+\section{Conclusão}
+
+    Pode-se concluir que o programa atingiu os objetivos que lhe foram propostos, já que os valores obtidos pelos testes acima se mostraram coerentes com aquilo que era esperado pela parte teórica (pela obtenção de valores para \textbf{n} e \textbf{k} que assegurassem o intervalo de confiança de erro proposto para \textbf{u(v)}), e com aquilo que foi solicitado no enunciado do EP (obtenção de $\hat{u(v)}$).
+
+\end{document}

@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fullpage,enumitem,amssymb,amsmath,xcolor,cancel,gensymb,hyperref,graphicx}
+\usepackage[brazilian]{babel}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{booktabs, multirow}
+\newcommand{\undertilde}[1]{\underset{\widetilde{}}{#1}}
+
+\begin{document}
+\begin{center}
+    \textbf{\LARGE MAP2212 - Laboratório de Computação e Simulação}\\
+    \vspace{0.3cm}
+    \textbf{\Large Relatório - EP06}\\
+    \vspace{0.3cm}
+    \large{Ayrton Amaral Alves Vítor - 11288131}\\
+    \large{Vítor Garcia Comissoli - 11810411}
+\end{center}
+
+\section{Introdução}
+    
+    O objetivo desse EP é a realização do teste de hipótese, por meio das estarísticas \textbf{e-valor} ($\bm{E_V}$) e  \textbf{e-valor padronizada} ($\bm{SE_V}$), para 72 combinações distintas dos vetores \textbf{x} e \textbf{y} (EP04 e EP05), por meio da obtenção da estimativa da área (\textbf{u(v)}) de uma função dirichlet dado um certo limite superior \textbf{V}.\\
+    \\
+    Vale ressaltar que será utilizado o gerador MCMC do EP05, além de várias funções oriundas tanto do EP04 quanto do EP05.\\
+    \\
+    Além disso, deve-se obter um erro de, no máximo, 0.05\%, com 95\% de confiança, ou seja, que fique dentro do Intervalo de Confiança $[u(v) - 0.0005, u(v) + 0.0005]$ $\forall$ $ u(v) $ com $ \alpha=0.95$.
+    
+\section{Discussão Teórica}
+    
+     Como esse EP é um complemento dos EPs 04 e 05, a grande parte da discussão teórica  já foi discutida em ambos os relatórios anteriores, por isso optamos por não nos repetir. A implementação da classe MCMC é baseada nas funções do model disponibilizado no e-disciplinas para as funções de estimação e geração valores distribuídos como uma dirichlet trivariada por MCMC.\\
+     \\
+     Com isso, na parte teórica se discutirá a maximização dos valores de $g(\theta)$, as estatísticas de teste que serão utilizadas para a realização dos teste de hipótese (\textbf{e-valor} ($\bm{E_V}$) e  \textbf{e-valor padronizada} ($\bm{SE_V}$) ) e o valor de \textbf{n} necessário para atingir a precisão solicitada. Experimentando localmente, fica claro que 3000 repetições é o suficiente para esquentar a cadeia. Isto é, a cadeia produz valores bons de uma dirichlet após 3000 repetições.
+     
+\subsection{Obtenção amostral dos valores de n e do burn-in (MCMC)}
+
+    Para a realização deste EP utilizou-se um $n = 70.000$ e um burn-in (para a geradora Dirichilet pelo método de Markovian Chains Monte Carlo (MCMC) ) de $3.000$, já que, para o teste de intervalo de confiança de $u(v)$ (mesmo do EP05) obteve-se que os valores dados acima garantem um $\epsilon < 0.005$ com 95\% de confiança, ou seja, $[u(v) - 0.0005, u(v) + 0.0005]$ $\forall$ $ u(v) $ com $ \alpha=0.95$.
+
+\subsection{Maximização de $g(\theta)$}
+
+    Tomemos $g(\theta)$ (ou $u(v)$) como a função na qual maximizaremos $fdp_{Dir(g(\theta))}$ para um certo valor de v.\\
+    \\
+    Temos que:
+    $$ \theta_1+\theta_2+\theta_3 = 1$$
+    
+    Para q se possa realizar a maximização de $g(\theta)$ foi-se necessária a dedução de $\theta^*$, o que levou a uma redução na dimensionalidade (sob  a hipótese nula ($H_{0}$)). Disso então temos que:
+    
+    $$ \theta_3 = (1 - \sqrt{\theta_1})^2 $$
+    
+    Subistituindo a segunda equação na primeira temos que:
+    
+    $$ 1 = \theta_1+\theta_2+(1 - \sqrt{\theta_1})^2 $$
+    
+    Disso:
+    
+    $$ \theta_2 = 2(\sqrt{\theta_1}-\theta_1) $$
+    \\
+    Disso, que $ g(\theta) = (\theta_1,2(\sqrt{\theta_1}-\theta_1),(1-\sqrt{\theta_1})^2)$, com $\theta_1\in [0,1]$.\\
+    \\
+    Agora, como $g(\theta)$ depende somente de $\theta_{1}$, pode-se fácilmente encontrar uma maximização para a mesma. Para isso foi-se utilizado um método pré pronto para a realização desta otimização, sendo ele o método optimize importado da library SciPy.
+
+\subsection{e-valor ($\bm{E_V}$) e e-valor padronizado ($\bm{SE_V}$)}
+
+    A decisão sobre quais serão os critérios de rejeição das hipóteses nulas ($H_{0}$) ficou a critério de cada dupla. Assim achamos pertinante seguir os seguintes critérios:
+    $$ $$
+    Para que rejeitemos uma certa hipótese nula ($H_{0}$):
+        $$ E_V < 0.90 \text{ e } SE_V < 0.90 $$
+    Para não rejeitarmos certa hipótese nula  ($H_{0}$):
+        $$ E_V \geq 0.95 \text{ e } SE_V \geq 0.95 $$
+    Por fim, ficamos indecisos quanto a hipótese nula  ($H_{0}$) se:
+        $$ 0.95 > E_V \geq 0.90 \text{ e } 0.95 > SE_V \geq 0.90 $$
+    \\
+    Vale ressaltar que, para $\textbf{y} = 0$ e $x_{i} = 0$, dado $i = 1, 3$, como não teremos uma Dirichilet, não pode-se calcular valores para $E_V$, $SE_V$ e $\theta^*$. Disso, também atribuiremos a designação "indeciso" à esses casos. Mais especificamente, teremos os seguintes valores para esses casos:\\
+    \\
+    $x_{1}$ $ $ $ $ $ $ $ $ $x_{3}$ $ $ $ $ $ $ $ $ $ $ Rejeita? $ $ $ $ $ $ $ $ $ $ $ $ $ \theta^*$\\
+     0.0  $ $ $ $ $ $ 0.0  $ $ $ $ $ $ "indeciso" $ $ $ $ $ $  [0,0,0]  
+
+\section{Discussão do Código}
+
+    Utilizando como base o modelo disponibilizado no e-disciplinas para a impementação do MCMC para uma dirichlet com kernel normal e também utilizando a função de estimação disponibilizada, implementamos a classe \textit{MCMC} que gera os valores da dirichlet e computa o valor da estatística de teste.\\
+    
+    A função mais importante é \textit{hyp\_test}, que realiza o teste de hipótese computado $E_V$ e $SE_V$. Ele printa o valor das estatísticas, dos valores de $\boldsymbol{x}$ e $\boldsymbol{y}$ e se houve aceitação ou não da hipótese.\\
+    
+    Na função main, chamamos esta função para cada tripla $\boldsymbol{x}$ e  cada $\boldsymbol{y}$.
+
+\section{Resultado}
+
+    Obteve-se que as aceitações e rejeições dadas pelo programa se mostram condizentes com os valores das estatísticas de teste \textbf{e-valor} ($\bm{E_V}$) e  \textbf{e-valor padronizada} ($\bm{SE_V}$), e que os valores obtidos de $u(v)$ se encontram dentro do erro estipulado pelo enunciado.\\
+    \\
+    Obteve-se também que o tempo de realização dos 72 cálculos dos $u(v)$ e suas respectivas estatísticas de teste não ultrapassou o tempo limite de 10 minutos (600 segundos).
+
+\section{Conclusão}
+
+    Pode-se concluir então que o programa atingiu os objetivos que lhe foram propostos, já que os valores obtidos pelos testes acima se mostraram coerentes com aquilo que era esperado pela parte teórica (pela obtenção de um valor para \textbf{n} que assegura o intervalo de confiança de erro proposto para $\forall$ \textbf{u(v)}), e com aquilo que foi solicitado no enunciado do EP.\\
+
+\end{document}
